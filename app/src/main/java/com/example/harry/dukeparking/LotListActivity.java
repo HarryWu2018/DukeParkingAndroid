@@ -13,6 +13,14 @@ import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.ListView;
 
+import com.avos.avoscloud.AVException;
+import com.avos.avoscloud.AVOSCloud;
+import com.avos.avoscloud.AVObject;
+import com.avos.avoscloud.AVQuery;
+import com.avos.avoscloud.FindCallback;
+import com.avos.avoscloud.GetCallback;
+import com.avos.avoscloud.SaveCallback;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
@@ -20,6 +28,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Calendar;
@@ -28,18 +38,20 @@ public class LotListActivity extends AppCompatActivity {
     //key String: lot UID; value String: name, Stirng: capacity
     public final static String LOT_ID = "LOT_IDDDD";
     public static HashMap<String,Lot> lotMap;
-    public SQLiteDatabase lotDb;
-    public final static String dbName = "transactionDataBase";
-    public final static String transactionTableName = "transactionTable";
-    public BufferedInputStream buffer;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        AVOSCloud.initialize(this, "J7yIyoEr5rUfhlvoby9ca8Q9-gzGzoHsz", "7BUbdP89682ApkdG9LoagYf2");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_lot_list);
         initialize();
-        updateData();
-        //processData();
+        pullServerData();
         final List<Lot> lotList = new ArrayList<>(lotMap.values());
+        Collections.sort(lotList, new Comparator<Lot>() {
+
+            public int compare(Lot o1, Lot o2) {
+                return o1.getName().compareTo(o2.getName());
+            }
+        });
         LotListAdapter adapter = new LotListAdapter(lotList,getApplicationContext());
         final ListView lView = (ListView) findViewById(R.id.parking_lot_list);
         lView.setAdapter(adapter);
@@ -122,98 +134,21 @@ public class LotListActivity extends AppCompatActivity {
         }
     }
 
-    public void processData(){
-//        dbHelper helper = new dbHelper(getApplicationContext());
-        //create database
-        lotDb = this.openOrCreateDatabase(dbName, MODE_PRIVATE, null);
-        String CREATE_TRANSACTION_TABLE = "CREATE TABLE IF NOT EXISTS " + "transactionTable" + "("
-                + "lot_id" + " TEXT," + "car_id" + " TEXT,"
-                + "date_entry" + " TEXT," + "date_exit" + " TEXT" + ")";
-        lotDb.execSQL(CREATE_TRANSACTION_TABLE);
-        //read data
-        InputStream inputStream = getResources().openRawResource(R.raw.refinedparkingtransactions);
-        BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
-        try {
-            String csvLine;
-            Boolean is_firstRow = true;
-            while ((csvLine = reader.readLine()) != null) {
-                if(is_firstRow){
-                    is_firstRow = false;
-                }
-                else{
-                    String carId = "";
-                    String lotId = "";
-                    String dateEntry = "";
-                    String dateExit = "";
-                    String[] row = csvLine.split(",");
-                    for(int i=0; i<row.length; i++){
-                        switch (i) {
-                            case 0:
-                                carId = row[i];
-                            case 1:
-                                lotId = row[i];
-                            case 4:
-                                dateEntry = row[i];
-                            case 5:
-                                dateExit = row[i];
-                        }
-                    }
-                    //insert into table
-                    lotDb.execSQL("INSERT INTO "
-                            + transactionTableName
-                            + " ( lot_id, car_id, date_entry, date_exit)"
-                            + " VALUES (" + Math.random() + "," + carId + "," + carId + "," + carId +");");
+    public void pullServerData(){
+        Calendar c = Calendar.getInstance();
+        int hours = c.get(Calendar.HOUR_OF_DAY);
+        AVQuery<AVObject> query = new AVQuery<>("dukeParkInfo");
+        query.whereEqualTo("period", hours);
+        query.findInBackground(new FindCallback<AVObject>() {
+            @Override
+            public void done(List<AVObject> list, AVException e) {
+                for (AVObject one : list) {
+                    Log.i("Server data", one.getInt("parkinglot") + ", " + one.getInt("numberofcars"));
+                    Lot oneLot = lotMap.get("" + one.getInt("parkinglot"));
+                    oneLot.setCurrent(one.getInt("numberofcars"));
                 }
             }
-        }
-        catch (IOException ex) {
-            throw new RuntimeException("Error in reading CSV file: "+ex);
-        }
-        finally {
-            try {
-                inputStream.close();
-            }
-            catch (IOException e) {
-                throw new RuntimeException("Error while closing input stream: "+e);
-            }
-        }
+        });
+
     }
-
-
-//    public class dbHelper extends SQLiteOpenHelper {
-//        // Database Name
-//        public static final String DATABASE_NAME = "lotTransactionData";
-//
-//        // Table Name
-//        public static final String TABLE_TRANSACTION = "transaction";
-//
-//        // Contacts Table Columns names
-//        private static final String CAR_ID = "car_id";
-//        private static final String LOT_ID = "lot_id";
-//        private static final String DATE_ENTRY = "date_entry";
-//        private static final String DATE_EXIT = "date_exit";
-//
-//        public dbHelper(Context context) {
-//            super(context, DATABASE_NAME, null, period1);
-//        }
-//
-//        // Creating Tables
-//        @Override
-//        public void onCreate(SQLiteDatabase db) {
-//            String CREATE_TRANSACTION_TABLE = "CREATE TABLE " + TABLE_TRANSACTION + "("
-//                    + LOT_ID + " TEXT PRIMARY KEY," + CAR_ID + " TEXT,"
-//                    + DATE_ENTRY + " TEXT," + DATE_EXIT + " TEXT" + ")";
-//            db.execSQL(CREATE_TRANSACTION_TABLE);
-//        }
-//
-//        // Upgrading database
-//        @Override
-//        public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-//            // Drop older table if existed
-//            db.execSQL("DROP TABLE IF EXISTS " + TABLE_TRANSACTION);
-//
-//            // Create tables again
-//            onCreate(db);
-//        }
-//    }
 }
