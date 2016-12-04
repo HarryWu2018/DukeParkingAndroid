@@ -16,15 +16,17 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Filter;
 
 /**
  * Created by Harry on period10/period20/period16.
  */
-public class LotListAdapter extends BaseAdapter implements ListAdapter {
+public class LotListAdapter extends ArrayAdapter<Lot> {
     private List<Lot> lotList;
     private Context context;
 
-    public LotListAdapter(List<Lot> lotList,Context context) {
+    public LotListAdapter(List<Lot> lotList, Context context) {
+        super(context, 0, lotList);
         this.lotList = lotList;
         this.context = context;
     }
@@ -35,7 +37,7 @@ public class LotListAdapter extends BaseAdapter implements ListAdapter {
     }
 
     @Override
-    public Object getItem(int pos) {
+    public Lot getItem(int pos) {
         return lotList.get(pos);
     }
     @Override

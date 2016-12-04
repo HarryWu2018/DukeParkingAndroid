@@ -7,9 +7,13 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
 
@@ -38,6 +42,11 @@ public class LotListActivity extends AppCompatActivity {
     //key String: lot UID; value String: name, Stirng: capacity
     public final static String LOT_ID = "LOT_IDDDD";
     public static HashMap<String,Lot> lotMap;
+    public LotListAdapter adapter;
+    public List<Lot> lotList;
+    public List<Lot> lotListDup;
+    public List<Lot> searchList;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         AVOSCloud.initialize(this, "J7yIyoEr5rUfhlvoby9ca8Q9-gzGzoHsz", "7BUbdP89682ApkdG9LoagYf2");
@@ -45,14 +54,15 @@ public class LotListActivity extends AppCompatActivity {
         setContentView(R.layout.activity_lot_list);
         initialize();
         pullServerData();
-        final List<Lot> lotList = new ArrayList<>(lotMap.values());
+        lotList = new ArrayList<>(lotMap.values());
+        lotListDup = new ArrayList<>(lotList);
         Collections.sort(lotList, new Comparator<Lot>() {
 
             public int compare(Lot o1, Lot o2) {
                 return o1.getName().compareTo(o2.getName());
             }
         });
-        LotListAdapter adapter = new LotListAdapter(lotList,getApplicationContext());
+        adapter = new LotListAdapter(lotList,getApplicationContext());
         final ListView lView = (ListView) findViewById(R.id.parking_lot_list);
         lView.setAdapter(adapter);
 
@@ -65,6 +75,47 @@ public class LotListActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
+
+        EditText inputSearch = (EditText) findViewById(R.id.inputSearch);
+        inputSearch.addTextChangedListener(new TextWatcher() {
+
+            @Override
+            public void onTextChanged(CharSequence cs, int arg1, int arg2, int arg3) {
+                // When user changed the Text
+                searchParkingLot(cs.toString());
+            }
+
+            @Override
+            public void beforeTextChanged(CharSequence arg0, int arg1, int arg2,
+                                          int arg3) {
+                // TODO Auto-generated method stub
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable arg0) {
+                // TODO Auto-generated method stub
+            }
+        });
+
+    }
+
+    public void searchParkingLot(String s){
+        searchList = new ArrayList<>();
+        for(Lot one:lotListDup){
+            if(one.getName().toLowerCase().contains(s.toLowerCase())){
+                searchList.add(one);
+            }
+            Collections.sort(searchList, new Comparator<Lot>() {
+
+                public int compare(Lot o1, Lot o2) {
+                    return o1.getName().compareTo(o2.getName());
+                }
+            });
+            adapter.clear();
+            adapter.addAll(searchList);
+            adapter.notifyDataSetChanged();
+        }
     }
 
     public void initialize(){
