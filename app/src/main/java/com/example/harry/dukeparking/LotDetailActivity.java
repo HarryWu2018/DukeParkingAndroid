@@ -24,8 +24,15 @@ public class LotDetailActivity extends AppCompatActivity {
         TextView name = (TextView)findViewById(R.id.lot_detail_name);
         TextView capacity = (TextView)findViewById(R.id.lot_detail_capacity);
         TextView available = (TextView)findViewById(R.id.lot_detail_available);
+        TextView availableLbl = (TextView) findViewById(R.id.lotAvailableLbl);
         name.setText(lot.getName());
         capacity.setText(Integer.toString(lot.getCapacity()));
-        available.setText(Integer.toString(lot.getCapacity()-lot.getCurrent()));
+        if(lot.getCurrent()==-1){
+            availableLbl.setText("Open Parking Lot");
+            available.setText("");
+        }
+        else{
+            available.setText(Integer.toString(lot.getCapacity()-lot.getCurrent()));
+        }
     }
 }

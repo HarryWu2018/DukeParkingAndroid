@@ -21,7 +21,7 @@ public class Lot {
         this.Id = Id;
         this.Name = Name;
         this.Capacity = Capacity;
-        this.Current = 0;
+        this.Current = -1;
         this.Addr = "Default Addr";
     }
 

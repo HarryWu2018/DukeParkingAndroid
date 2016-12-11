@@ -71,7 +71,12 @@ public class LotListAdapter extends ArrayAdapter<Lot> {
         else if(percentAvailable <= 25){
             indicator.setImageResource(R.drawable.red);
         }
-        lotInfoView.setText((int)percentAvailable+"% Available");
+        if(lotList.get(position).getCurrent()==-1){
+            lotInfoView.setText("Open Parking Lot");
+        }
+        else{
+            lotInfoView.setText((int)percentAvailable+"% Available");
+        }
 
         return view;
     }

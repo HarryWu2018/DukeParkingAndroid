@@ -13,7 +13,7 @@
     <EditText android:id="@+id/inputSearch"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:hint="Search Parking Lot.."
+        android:hint="Search Parking Lot..."
         android:inputType="textVisiblePassword"/>
 
     <ListView

@@ -10,7 +10,7 @@
         android:layout_height="wrap_content"
         android:layout_margin="10dp"
         android:layout_weight="1"
-        android:textSize="20sp"
+        android:textSize="15sp"
         android:textColor="#6e686c"
         android:text="Parking Lot"
         android:textStyle="bold"
@@ -23,7 +23,7 @@
         android:layout_margin="10dp"
         android:layout_weight="1"
         android:textStyle="bold"
-        android:textSize="20sp"
+        android:textSize="15sp"
         android:textColor="#6e686c"
         android:text="Available spot"
         android:gravity="center" />
